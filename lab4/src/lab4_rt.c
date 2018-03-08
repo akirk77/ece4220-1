@@ -1,0 +1,63 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <sched.h>
+#include <pthread.h>
+#include <sys/timerfd.h>
+#include <time.h>
+#include <stdint.h>
+#include "ece4220lab3.h"
+
+#define SCHED_POLICY SCHED_FIFO
+#define SCHED_PRIORITY 55
+
+int main( void )
+{
+
+	int sys;
+	sys = system( "mkfifo /tmp/N_pipe2" );
+	
+	//Declarations
+	int pipe_N_pipe2;
+
+	//Check if pipe opened!
+	if( ( pipe_N_pipe2 = open( "/tmp/N_pipe2", O_WRONLY ) ) < 0 )
+	{
+		puts( "Pipe N_pipe2 failed to open!" );
+	}
+
+    int timer_fd = timerfd_create(CLOCK_REALTIME, 0);	// returns a file descriptor
+	struct itimerspec itval;	// structure to hold period and starting time
+	struct sched_param param;
+	
+	param.sched_priority = SCHED_PRIORITY;
+	sched_setscheduler( 0, SCHED_POLICY, &param );
+
+    itval.it_interval.tv_sec = 0;
+    itval.it_interval.tv_nsec = 75000000;
+
+    itval.it_value.tv_sec = 0;
+    itval.it_value.tv_nsec = 0;
+
+	timerfd_settime(timer_fd, 0, &itval, NULL);
+	uint64_t num_periods = 0;
+	
+	struct timespec spec;
+	
+	while(1)
+	{
+
+		if( check_button() == 1 )
+		{
+			clock_gettime( CLOCK_REALTIME, &spec );
+			int ms = (spec.tv_sec * 1000 ) + (spec.tv_nsec / 1000000);
+			write( pipe_N_pipe2, &ms, sizeof(int) );
+		}
+			
+		read(timer_fd, &num_periods, sizeof(num_periods));
+	
+	}
+
+}
