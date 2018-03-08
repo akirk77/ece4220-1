@@ -38,6 +38,8 @@ void event_thread( void * ptr )
 		printf( "The THINGY is:\n> %d at\n %u (ms)\n", buffer->location, buffer->time );
 
 	}
+
+
 }
 
 void printing_thread( void * ptr )
