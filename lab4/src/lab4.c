@@ -26,6 +26,15 @@ typedef struct
 	unsigned int time;
 } gps_data;
 
+typedef struct
+{
+  int beforeLoc
+  unsigned int beforeTime;
+  int afterLoc;
+  unsigned int afterTime;
+  unsigned int currentTime;
+  int ppipe;
+} gps_comp;
 
 void event_thread( void * ptr )
 {
@@ -41,8 +50,16 @@ void event_thread( void * ptr )
 		puts( "Pipe N_pipe2 failed to open!" );
 	}
 
-	int ms;
-	pthread_t my_child;
+	unsigned int ms;
+	pthread_t my_child, pthread1;
+  
+  int simple_pipe;
+  if( pipe(simple_pipe) < 0 )
+  {
+    puts( "Pipe Creation Error");
+  }
+  
+  pthread_create( &pthread1, NULL, (void *) printing_thread, (void *) &simple_pipe );
 
 	while(1)
 	{
@@ -52,8 +69,15 @@ void event_thread( void * ptr )
 		//I'm doing things!!!
 		puts( "Press recieved from Process 2!\n");
 
+    //Create new structure
+    gps_comp newData;
+    newData->beforeLoc = buffer->location;
+    newData->beforeTime = buffer->time;
+    newData->currentTime = ms;
+    newData->ppipe = simple_pipe;
+
 		//Create child thread to wait for data change
-		pthread_create( &my_child, NULL, (void *) child_thread, (void *) buffer );
+		pthread_create( &my_child, NULL, (void *) child_thread, (void *) &newData );
 
 
 		//Try to read pipe and output
@@ -69,12 +93,7 @@ void child_thread( void * ptr )
 	puts( "A child Thread Created" );
 
 	//Follow Buffer Data
-	gps_data * buffer = (gps_data *) ptr;
-
-	//Data at press
-	gps_data datanow;
-	datanow.location = buffer->location;
-	datanow.time = buffer->time;
+	gps_data * datanow = (gps_data *) ptr;
 
 	while( buffer->time == datanow.time )
 	{
@@ -82,8 +101,24 @@ void child_thread( void * ptr )
 	}
 
 	//puts( "The data changed and I can now interpolate!\n");
+  
+  //Setup vars
+  unsigned int x0 = datanow->currentTime;
+  unsigned int x1 = datanow->beforeTime;
+  unsigned int x2 = datanow->afterTime;
+  unsigned int y1 = datanow->beforeLoc;
+  unsigned int y2 = datanow->afterLoc;
+  
+  //Interpolation
+  double interpolated = (double) ( y1 + (( x0 - x1 )/( x2 - x1)( y2 - y1 )) );
+  
+  //Write the data to the simple printing pipe
+  gpsData toPrint;
+  toPrint.location = (int) interpolated;
+  toPrint.time = x0;  
+  write( datanow->ppipe, &toPrint, sizeof( &toPrint ) ) ;
 
-	printf( "Data Difference: %d\n", (int) (buffer->time - datanow.time) );
+	printf( "Location is %d at %u\n", (int)interpolated, x0 );
 
 	pthread_exit(0);
 
@@ -91,6 +126,15 @@ void child_thread( void * ptr )
 
 void printing_thread( void * ptr )
 {
+
+  int laPipe = (int) (*ptr);
+  gps_data * printData;
+  
+  while(1)
+  {
+    read( simple_pipe, printData, sizeof( gps_data * ) );   
+	  printf( "Location is %d at %u\n", gps_data->location, gps_data->time );
+  }
 
 }
 

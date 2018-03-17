@@ -64,7 +64,7 @@ int main( void )
 		if( check_button() == 1 )
 		{
 			clock_gettime( CLOCK_REALTIME, &spec );
-			int ms = (int) (spec.tv_sec * 1000 ) + (spec.tv_nsec / 1000000);
+			unsigned int ms = (unsigned int) (spec.tv_sec * 1000 ) + (spec.tv_nsec / 1000000);
 			write( pipe_N_pipe2, &ms, sizeof(ms) );
 			clear_button();
 			puts( "Button pressed" );
