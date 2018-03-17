@@ -45,7 +45,11 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+<<<<<<< HEAD
 						<entry excluding="lab2_1.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+=======
+						<entry excluding="lab2_2.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+>>>>>>> 450e28b25748dc27740348fc5a3c04a3cf567cec
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -92,7 +96,11 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+<<<<<<< HEAD
 						<entry excluding="lab2_1.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+=======
+						<entry excluding="lab2_2.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
+>>>>>>> 450e28b25748dc27740348fc5a3c04a3cf567cec
 					</sourceEntries>
 				</configuration>
 			</storageModule>
