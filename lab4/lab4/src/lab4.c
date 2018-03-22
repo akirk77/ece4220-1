@@ -82,7 +82,7 @@ void event_thread( void * ptr )
 
 		//Update Buffer with time
 		//puts( "Updating Buffer Time" );
-		buffer->time = ms;
+		//buffer->time = ms;
 
 		//Create child thread to wait for data change
 		//puts( "Creating new Child" );
@@ -117,7 +117,7 @@ void child_thread( void * ptr )
 	newData.afterTime = buffer->time;
 	newData.afterLoc = buffer->location;
 
-	printf( "\n\nTEST: %lu,  %lu", newData.beforeTime, newData.afterTime );
+	//printf( "\n\nTEST: %lu,  %lu", newData.beforeTime, newData.afterTime );
 
 	//puts( "The data changed and I can now interpolate!\n");
   
@@ -166,7 +166,7 @@ void printing_thread( void * ptr )
  
 	while(1)
 	{
-		puts( "Printing thread waiting...\n" );
+		//puts( "Printing thread waiting...\n" );
 		read( simple_pipe, &printData, sizeof( gps_data ) );   
 		printf( "Location is %lf at %u\n", printData.location, printData.time );
   	}
@@ -212,10 +212,12 @@ int main(void)
 			buffer.location = thingy;
 		}
 
-		clock_gettime( CLOCK_REALTIME, &endTime );
-		diff = ( 1000000000 * (endTime.tv_sec - startTime.tv_sec) ) + endTime.tv_nsec - startTime.tv_nsec;
+		//clock_gettime( CLOCK_REALTIME, &endTime );
+		//diff = ( 1000000000 * (endTime.tv_sec - startTime.tv_sec) ) + endTime.tv_nsec - startTime.tv_nsec;
 
-		buffer.time = diff;
+		struct timespec spec;
+		clock_gettime( CLOCK_REALTIME, &spec );
+		buffer.time = (unsigned long) ( spec.tv_sec * 1000000000 ) + spec.tv_nsec ;
 
 	}
 

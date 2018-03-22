@@ -82,7 +82,7 @@ void event_thread( void * ptr )
 
 		//Update Buffer with time
 		//puts( "Updating Buffer Time" );
-		buffer->time = ms;
+		//buffer->time = ms;
 
 		//Create child thread to wait for data change
 		//puts( "Creating new Child" );
