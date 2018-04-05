@@ -39,8 +39,10 @@ int main( int argc, char * argv[] )
 	socklen_t fromlen;
 	struct sockaddr_in server;
 	struct sockaddr_in addr;
+//	struct sockaddr_in rec;
 	char buffer[MAX_MSG];
-	
+	int I_THE_MASTER = 0;
+	int cuteNumber;	
 	
 	sock = socket( AF_INET, SOCK_DGRAM, 0 );
 	if( sock < 0 ) {
@@ -64,12 +66,28 @@ int main( int argc, char * argv[] )
 	snprintf( ifr.ifr_name, IFNAMSIZ, "wlan0" );
 	ioctl( sock, SIOCGIFADDR, &ifr );	
 
+	char * myIP = malloc( sizeof(char) * 16 );
+	myIP = inet_ntoa( ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr );
 	printf( "My Local IP is: %s\n\n", inet_ntoa( ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr ) );
+
+	//Setup broadcasting
+	int broadcast = 1;
+	addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
+	addr.sin_port = htons( port );
+	if( setsockopt( sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast) ) < 0 )
+        {
+        	printf( "Broadcast failure" );
+	        exit( -1 );
+        }
+
+
 
 	while( 1 )
 	{	
 
 		bzero( buffer, MAX_MSG );
+			
+
 		n = recvfrom( sock, buffer, MAX_MSG, 0, (struct sockaddr *) &addr, &fromlen );
 		if( n < 0 ) {
 			error( "Receive from" );
@@ -79,17 +97,54 @@ int main( int argc, char * argv[] )
 		/*
 		Compare the command with different options and set the action to a value, if it has one. otherwise action will remain 0, which will cause no action to happen.
 		*/
-		printf( "Command recieved from client: %s", buffer );
-		
+		printf( "\nReceived :: %s\n", buffer );
+	
+		fflush( stdout );	
 		if( !strcmp( buffer, "WHOIS\n" ) )
 		{
-			puts( "Doing a WHOIS" );
+			puts( "Doing WHOIS" );
+			if( I_THE_MASTER == 1 )
+			{
+				puts("I the master" );
+					
+				char mastery[MAX_MSG];
+				sprintf( mastery, "%s on board %s is master!", name, myIP );
+				
+				addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
+				sendto( sock, mastery, MAX_MSG, 0, (const struct sockaddr *)&addr, fromlen );
+			}
 		}
 		else if( !strcmp( buffer, "VOTE\n" ) )
 		{
 			puts( "WOW! It's time to elect another leader of the free world!" );
+
+		        cuteNumber = rand() % 10;
+                        char voteReturn[18];
+                        sprintf( voteReturn, "# %s %d", myIP, cuteNumber);
+
+			addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
+                        n = sendto( sock, voteReturn, MAX_MSG, 0, (const struct sockaddr *)&addr, fromlen );
+			if( n < 0 )
+			{
+				error( "Sending Vote" );
+			}
+
+//	                recvfrom( sock, buffer, MAX_MSG, 0, (struct sockaddr *) &addr, &fromlen );
+//			printf( "\nReceived :: %s", buffer );
+
+
+			I_THE_MASTER = 1;
 		}
+		else if( buffer[0] == '#' )
+		{
 	
+			int cNum;
+			int cIp;
+			
+			sscanf( buffer, "# %*d.%*d.%*d.%d %d",  &cIp, &cIp );
+			printf( "\nVote recieved with :: Ip: %d | Num : %d \n", cIp, cNum );
+
+		}
 
 		//printf( "Command recieved from client: %s", buffer );
 
