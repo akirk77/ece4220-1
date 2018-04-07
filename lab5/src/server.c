@@ -138,11 +138,31 @@ int main( int argc, char * argv[] )
 		else if( buffer[0] == '#' )
 		{
 	
-			int cNum;
-			int cIp;
+			unsigned int cNum;
+			unsigned int cIp;
+      
+      unsigned int myLastAddr;
+      sscanf( mpIp, "%*u.%*u.%*u.%u %u", &myLastAddr );
 			
-			sscanf( buffer, "# %*d.%*d.%*d.%d %d",  &cIp, &cIp );
-			printf( "\nVote recieved with :: Ip: %d | Num : %d \n", cIp, cNum );
+			sscanf( buffer, "# %*u.%*u.%*u.%u %u",  &cIp, &cIp );
+			printf( "\nVote recieved with :: Ip: %u | Num : %u \n", cIp, cNum );
+      
+      if( cNum < cuteNumber )
+      {
+        I_THE_MASTER = 1;
+      }
+      else if( cNum == cuteNumber ) 
+      {
+        if( cIp > myLastAddr ) {
+          I_THE_MASTER = 0;
+        } else {                  
+          I_THE_MASTER = 1;
+        }
+      }
+      else
+      {
+        I_THE_MASTER = 0;
+      }
 
 		}
 
