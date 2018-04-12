@@ -110,7 +110,7 @@ int main( int argc, char * argv[] )
 				char mastery[MAX_MSG];
 				sprintf( mastery, "%s on board %s is master!", name, myIP );
 				
-				addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
+				//addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
 				sendto( sock, mastery, MAX_MSG, 0, (const struct sockaddr *)&addr, fromlen );
 			}
 		}
@@ -141,28 +141,28 @@ int main( int argc, char * argv[] )
 			unsigned int cNum;
 			unsigned int cIp;
       
-      unsigned int myLastAddr;
-      sscanf( myIP, "%*u.%*u.%*u.%u %u", &myLastAddr );
+			unsigned int myLastAddr;
+      			sscanf( myIP, "%*u.%*u.%*u.%u %u", &myLastAddr );
 			
-			sscanf( buffer, "# %*u.%*u.%*u.%u %u",  &cIp, &cIp );
-			printf( "\nVote recieved with :: Ip: %u | Num : %u \n", cIp, cNum );
+			sscanf( buffer, "# %*u.%*u.%*u.%u %u",  &cIp, &cNum );
+			printf( "\nVote recieved with :: Ip: %u | Num : %u | myIPL : %u | myNUM : %d\n", cIp, cNum, myLastAddr, cuteNumber );
       
-      if( cNum < cuteNumber )
-      {
-        I_THE_MASTER = 1;
-      }
-      else if( cNum == cuteNumber ) 
-      {
-        if( cIp > myLastAddr ) {
-          I_THE_MASTER = 0;
-        } else {                  
-          I_THE_MASTER = 1;
-        }
-      }
-      else
-      {
-        I_THE_MASTER = 0;
-      }
+		      if( cNum < cuteNumber )
+		      {
+		        I_THE_MASTER = 1;
+		      }
+		      else if( cNum == cuteNumber ) 
+		      {
+		        if( cIp >= myLastAddr ) {
+		          I_THE_MASTER = 0;
+		        } else {                  
+		          I_THE_MASTER = 1;
+		        }
+		      }
+		      else
+		      {
+		        I_THE_MASTER = 0;
+		      }
 
 		}
 

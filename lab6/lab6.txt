@@ -1,0 +1,12 @@
+Week 1:
+> Develop a musical keyboard
+> Finish the kthread_test hrtimer_test file to use the GPIO to produce sound :wq
+
+
+
+Week 2:
+> Use intertask communication from lab5
+
+
+Postlab Question:
+> Find out which sound is the same, but if no difference is noticable, then find out what it could be.
