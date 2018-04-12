@@ -142,7 +142,7 @@ int main( int argc, char * argv[] )
 			unsigned int cIp;
       
       unsigned int myLastAddr;
-      sscanf( mpIp, "%*u.%*u.%*u.%u %u", &myLastAddr );
+      sscanf( myIP, "%*u.%*u.%*u.%u %u", &myLastAddr );
 			
 			sscanf( buffer, "# %*u.%*u.%*u.%u %u",  &cIp, &cIp );
 			printf( "\nVote recieved with :: Ip: %u | Num : %u \n", cIp, cNum );
