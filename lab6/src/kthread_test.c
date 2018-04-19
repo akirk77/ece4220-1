@@ -22,26 +22,31 @@
 
 MODULE_LICENSE("GPL");
 
+//unsigned long 
+//GPFSEL0 = 0x3f200000;
+//GPSET0 = 0x3f200000;
+//GPPUD = 0x3f200094;
+
+unsigned long * selpin;
+unsigned long * GP_SET;
+unsigned long * GP_CLEAR;
+
 // structure for the kthread.
 static struct task_struct *kthread1;
 
 // Function to be associated with the kthread; what the kthread executes.
 int kthread_fn(void *ptr)
-{
-	unsigned long * selpin = (unsigned long*) ioremap( (0x3f200000), 4096 );
-	
-	selpin += 37;
-
-	iowrite32( ( *selpin | 0x00049240 ), selpin );
+{        
 
 	//gpio_request( 16, "BTN1" );
 	//gpio_direction_output( 16, 0 );
 
-	unsigned long j0, j1;
+
+//	unsigned long j0, j1;
 	int count = 0;
 
 	printk("In kthread1\n");
-	j0 = jiffies;		// number of clock ticks since system started;
+/*	j0 = jiffies;		// number of clock ticks since system started;
 						// current "time" in jiffies
 	j1 = j0 + 10*HZ;	// HZ is the number of ticks per second, that is
 						// 1 HZ is 1 second in jiffies
@@ -49,18 +54,28 @@ int kthread_fn(void *ptr)
 	while(time_before(jiffies, j1))	// true when current "time" is less than j1
         schedule();		// voluntarily tell the scheduler that it can schedule
 						// some other process
+	*/
 	
+	//printk( "We're at pin %ul", selpin );
+
 	printk("Before loop\n");
 	
 	// The ktrhead does not need to run forever. It can execute something
 	// and then leave.
 	while(1)
 	{
-		msleep(1000);	// good for > 10 ms
+		iowrite32( ( *GP_SET | 0x00000044 ), GP_SET );		
+
+		//msleep( 75 );	// good for > 10 ms
+		udelay( 750 );
 		//msleep_interruptible(1000); // good for > 10 ms
 		//udelay(unsigned long usecs);	// good for a few us (micro s)
 		//usleep_range(unsigned long min, unsigned long max); // good for 10us - 20 ms
 		
+		iowrite32( ( *GP_CLEAR | 0x00000044 ), GP_CLEAR );
+
+		udelay( 750 );
+
 		
 		// In an infinite loop, you should check if the kthread_stop
 		// function has been called (e.g. in clean up module). If so,
@@ -72,7 +87,7 @@ int kthread_fn(void *ptr)
 				
 		// comment out if your loop is going "fast". You don't want to
 		// printk too often. Sporadically or every second or so, it's okay.
-		printk("Count: %d\n", ++count);
+		//printk("Count: %d\n", ++count);
 	}
 	
 	return 0;
@@ -80,7 +95,33 @@ int kthread_fn(void *ptr)
 
 int thread_init(void)
 {
-	char kthread_name[11]="my_kthread";	// try running  ps -ef | grep my_kthread
+
+        selpin = (unsigned long*) ioremap( (0x3f200000), 4096 );
+
+	GP_SET = selpin + 7;
+	GP_CLEAR = selpin + 10;
+
+	iowrite32( (*selpin | 0x00040040 ), selpin );
+
+	//selpin += 10;
+
+	iowrite32( (*selpin | 0x00000044 ), selpin );
+
+	printk( "\nSelpin: %lx\n", *selpin );
+
+        //Set Speaker to Output
+        //Increment to GP_SET
+                //Bit Mask
+        //Increment to GP_CLEAR
+                //Bit Mask
+
+
+        //selpin += 37;
+
+        //iowrite32( ( *selpin | 0x00049240 ), selpin );
+
+
+	char kthread_name[11] = "my_kthread";	// try running  ps -ef | grep my_kthread
 										// when the thread is active.
 	printk("In init module\n");
     	    
