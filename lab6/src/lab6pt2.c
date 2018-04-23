@@ -109,7 +109,7 @@ int timer_init(void)
 	iowrite32( ( *( selpin + 2 ) | 0x00000000 ), ( selpin + 2 ) );
 
 	//Configure Pull-up/down control
-	iowrite32( ( *GP_PUD | 0x00000002 ), GP_PUD );
+	iowrite32( ( *GP_PUD | 0x00000001 ), GP_PUD );
 	udelay( 100 ); // Wait time for setup of control signal
 	//Set PUD clock
 	iowrite32( ( *( GP_PUD + 1 ) | 0x001F0000 ), ( GP_PUD + 1 ) );
