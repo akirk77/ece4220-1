@@ -38,12 +38,12 @@ unsigned long * GP_PUD;
 //Interrupt Service
 static irqreturn_t button_isr( int irq, void * dev_id )
 {
-	disable_irq_nosync( 79 );
+	disable_irq_nosync( irq );
 
 	//Figure out which buttonw as pressed and handle sound
 
 	printk( "Interrupt Handled" );
-	enable_irq( 79 );
+	enable_irq( irq );
 
 	return IRQ_HANDLED;
 }
@@ -86,7 +86,7 @@ enum hrtimer_restart timer_callback(struct hrtimer *timer_for_restart)
 	dummy = (dummy + 1)%1000;
 	
 	
-	return HRTIMER_RESTART;	// Return this value to restart the timer.
+	return	 HRTIMER_RESTART;	// Return this value to restart the timer.
 							// If you don't want/need a recurring timer, return
 							// HRTIMER_NORESTART (and don't forward the timer).
 }
@@ -109,20 +109,35 @@ int timer_init(void)
 	iowrite32( ( *( selpin + 2 ) | 0x00000000 ), ( selpin + 2 ) );
 
 	//Configure Pull-up/down control
-	iowrite32( ( *GP_PUD | 0x00000002 ), GP_PUD );
+	iowrite32( ( *GP_PUD | 0x00000001 ), GP_PUD );
 	udelay( 100 ); // Wait time for setup of control signal
 	//Set PUD clock
 	iowrite32( ( *( GP_PUD + 1 ) | 0x001F0000 ), ( GP_PUD + 1 ) );
 	udelay( 100 );
-	iowrite32( ( *GP_PUD | 0x00000000 ), GP_PUD );
-	iowrite32( ( *( GP_PUD + 1 ) | 0x00000000 ), ( GP_PUD + 1 ) );
+	//iowrite32( ( *GP_PUD | 0x00000000 ), GP_PUD );
+	//udelay( 100 );
+	//iowrite32( ( *( GP_PUD + 1 ) | 0x00000000 ), ( GP_PUD + 1 ) );
+	//udelay( 100 );
 	
 	//Enable Async Rising Edge for buttons
 	iowrite32( ( *GP_AREN | 0x001F0000 ), GP_AREN );
 
 	//Setup the interrupt
 	int interrupt = 0;
-	interrupt = request_irq( 79, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+	interrupt = request_irq( 16, button_isr, IRQF_SHARED, "Button_handler", &mydev_id ); 
+        interrupt = request_irq( 17, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+        interrupt = request_irq( 18, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+        interrupt = request_irq( 19, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+        interrupt = request_irq( 20, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+        interrupt = request_irq( 36, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+        interrupt = request_irq( 11, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+        interrupt = request_irq( 12, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+        interrupt = request_irq( 35, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+        interrupt = request_irq( 38, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+
+
+	//Starting Message
+	printk( "We're all setup and running!!!" );
 
 	// Configure and initialize timer
 	ktime_t ktime = ktime_set(0, timer_interval_ns); // (long sec, long nano_sec)
@@ -143,7 +158,23 @@ int timer_init(void)
 void timer_exit(void)
 {
 	//Get rid of the interrupt handler
-	free_irq( 79, &mydev_id );
+	free_irq( 16, &mydev_id );
+        free_irq( 17, &mydev_id );
+        free_irq( 18, &mydev_id );
+        free_irq( 19, &mydev_id );
+        free_irq( 20, &mydev_id );
+        free_irq( 36, &mydev_id );
+        free_irq( 11, &mydev_id );
+        free_irq( 12, &mydev_id );
+        free_irq( 35, &mydev_id );
+        free_irq( 38, &mydev_id );
+
+
+	//Fix Buttons
+        iowrite32( ( *GP_PUD | 0x00000000 ), GP_PUD );
+        udelay( 100 );
+        iowrite32( ( *( GP_PUD + 1 ) | 0x00000000 ), ( GP_PUD + 1 ) );
+        udelay( 100 );
 
 	int ret;
   	ret = hrtimer_cancel(&hr_timer);	// cancels the timer.
