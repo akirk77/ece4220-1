@@ -1,8 +1,8 @@
-cmd_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := gcc -Wp,-MD,/home/pi/workspace/ECE4220/lab6/src/.hrtimer_test.o.d  -nostdinc -isystem /usr/lib/gcc/arm-linux-gnueabihf/4.9/include -I./arch/arm/include -Iarch/arm/include/generated/uapi -Iarch/arm/include/generated  -Iinclude -I./arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I./include/uapi -Iinclude/generated/uapi -include ./include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-bcm2709/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -std=gnu89 -fno-PIE -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fno-ipa-sra -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-delete-null-pointer-checks -Wno-maybe-uninitialized -O2 --param=allow-store-data-races=0 -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -Werror=date-time -DCC_HAVE_ASM_GOTO  -DMODULE  -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(hrtimer_test)"  -D"KBUILD_MODNAME=KBUILD_STR(hrtimer_test)" -c -o /home/pi/workspace/ECE4220/lab6/src/.tmp_hrtimer_test.o /home/pi/workspace/ECE4220/lab6/src/hrtimer_test.c
+cmd_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.o := gcc -Wp,-MD,/home/pi/workspace/ECE4220/lab6/src/.lab6pt2.o.d  -nostdinc -isystem /usr/lib/gcc/arm-linux-gnueabihf/4.9/include -I./arch/arm/include -Iarch/arm/include/generated/uapi -Iarch/arm/include/generated  -Iinclude -I./arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I./include/uapi -Iinclude/generated/uapi -include ./include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-bcm2709/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -std=gnu89 -fno-PIE -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fno-ipa-sra -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-delete-null-pointer-checks -Wno-maybe-uninitialized -O2 --param=allow-store-data-races=0 -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -Werror=date-time -DCC_HAVE_ASM_GOTO  -DMODULE  -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(lab6pt2)"  -D"KBUILD_MODNAME=KBUILD_STR(lab6pt2)" -c -o /home/pi/workspace/ECE4220/lab6/src/.tmp_lab6pt2.o /home/pi/workspace/ECE4220/lab6/src/lab6pt2.c
 
-source_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := /home/pi/workspace/ECE4220/lab6/src/hrtimer_test.c
+source_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.o := /home/pi/workspace/ECE4220/lab6/src/lab6pt2.c
 
-deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := \
+deps_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.o := \
   include/linux/module.h \
     $(wildcard include/config/modules.h) \
     $(wildcard include/config/sysfs.h) \
@@ -513,7 +513,25 @@ deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := \
   include/linux/pinctrl/pinctrl-state.h \
   include/linux/gpio/consumer.h \
     $(wildcard include/config/gpio/sysfs.h) \
+  include/linux/delay.h \
+  arch/arm/include/asm/delay.h \
+  include/linux/interrupt.h \
+    $(wildcard include/config/irq/forced/threading.h) \
+    $(wildcard include/config/generic/irq/probe.h) \
+  include/linux/hardirq.h \
+  include/linux/ftrace_irq.h \
+    $(wildcard include/config/ftrace/nmi/enter.h) \
+  include/linux/vtime.h \
+    $(wildcard include/config/virt/cpu/accounting/native.h) \
+    $(wildcard include/config/virt/cpu/accounting/gen.h) \
+    $(wildcard include/config/virt/cpu/accounting.h) \
+    $(wildcard include/config/irq/time/accounting.h) \
+  include/linux/context_tracking_state.h \
+    $(wildcard include/config/context/tracking.h) \
+  include/linux/static_key.h \
+  arch/arm/include/asm/hardirq.h \
+  include/linux/irq_cpustat.h \
 
-/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o: $(deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o)
+/home/pi/workspace/ECE4220/lab6/src/lab6pt2.o: $(deps_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.o)
 
-$(deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o):
+$(deps_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.o):

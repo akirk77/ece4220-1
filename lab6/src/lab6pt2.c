@@ -16,6 +16,11 @@
 #include <linux/hrtimer.h>
 #include <linux/ktime.h>
 #include <linux/gpio.h>
+#include <linux/delay.h>
+#include <linux/types.h>
+#include <linux/init.h>
+#include <linux/interrupt.h>
+#include <asm/io.h>
 
 MODULE_LICENSE("GPL");
 
@@ -23,9 +28,25 @@ unsigned long timer_interval_ns = 750000;	// timer interval length (nano sec par
 static struct hrtimer hr_timer;			// timer structure
 static int count = 0, dummy = 0;
 
+int mydev_id;
 unsigned long * selpin;
 unsigned long * GP_SET;
 unsigned long * GP_CLEAR;
+unsigned long * GP_AREN;
+unsigned long * GP_PUD;
+
+//Interrupt Service
+static irqreturn_t button_isr( int irq, void * dev_id )
+{
+	disable_irq_nosync( 79 );
+
+	//Figure out which buttonw as pressed and handle sound
+
+	printk( "Interrupt Handled" );
+	enable_irq( 79 );
+
+	return IRQ_HANDLED;
+}
 
 // Timer callback function: this executes when the timer expires
 enum hrtimer_restart timer_callback(struct hrtimer *timer_for_restart)
@@ -76,9 +97,32 @@ int timer_init(void)
 	selpin = (unsigned long * ) ioremap( ( 0x3f200000 ), 4096 );
 	GP_SET = selpin + 7;
 	GP_CLEAR = selpin + 10;
+	GP_AREN = selpin + 31;
+	GP_PUD = selpin + 37;
 
+	//Prepare Pins for writing
 	iowrite32( ( *selpin | 0x00040040 ), selpin );
 	iowrite32( ( *selpin | 0x00000044 ), selpin );
+
+	//Configure Button Pins as input
+	iowrite32( ( *( selpin + 1 ) | 0x00000000 ), ( selpin + 1 ) );
+	iowrite32( ( *( selpin + 2 ) | 0x00000000 ), ( selpin + 2 ) );
+
+	//Configure Pull-up/down control
+	iowrite32( ( *GP_PUD | 0x00000002 ), GP_PUD );
+	udelay( 100 ); // Wait time for setup of control signal
+	//Set PUD clock
+	iowrite32( ( *( GP_PUD + 1 ) | 0x001F0000 ), ( GP_PUD + 1 ) );
+	udelay( 100 );
+	iowrite32( ( *GP_PUD | 0x00000000 ), GP_PUD );
+	iowrite32( ( *( GP_PUD + 1 ) | 0x00000000 ), ( GP_PUD + 1 ) );
+	
+	//Enable Async Rising Edge for buttons
+	iowrite32( ( *GP_AREN | 0x001F0000 ), GP_AREN );
+
+	//Setup the interrupt
+	int interrupt = 0;
+	interrupt = request_irq( 79, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
 
 	// Configure and initialize timer
 	ktime_t ktime = ktime_set(0, timer_interval_ns); // (long sec, long nano_sec)
@@ -98,6 +142,9 @@ int timer_init(void)
 
 void timer_exit(void)
 {
+	//Get rid of the interrupt handler
+	free_irq( 79, &mydev_id );
+
 	int ret;
   	ret = hrtimer_cancel(&hr_timer);	// cancels the timer.
   	if(ret)

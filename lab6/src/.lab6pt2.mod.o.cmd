@@ -1,8 +1,9 @@
-cmd_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := gcc -Wp,-MD,/home/pi/workspace/ECE4220/lab6/src/.hrtimer_test.o.d  -nostdinc -isystem /usr/lib/gcc/arm-linux-gnueabihf/4.9/include -I./arch/arm/include -Iarch/arm/include/generated/uapi -Iarch/arm/include/generated  -Iinclude -I./arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I./include/uapi -Iinclude/generated/uapi -include ./include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-bcm2709/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -std=gnu89 -fno-PIE -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fno-ipa-sra -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-delete-null-pointer-checks -Wno-maybe-uninitialized -O2 --param=allow-store-data-races=0 -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -Werror=date-time -DCC_HAVE_ASM_GOTO  -DMODULE  -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(hrtimer_test)"  -D"KBUILD_MODNAME=KBUILD_STR(hrtimer_test)" -c -o /home/pi/workspace/ECE4220/lab6/src/.tmp_hrtimer_test.o /home/pi/workspace/ECE4220/lab6/src/hrtimer_test.c
+cmd_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.o := gcc -Wp,-MD,/home/pi/workspace/ECE4220/lab6/src/.lab6pt2.mod.o.d  -nostdinc -isystem /usr/lib/gcc/arm-linux-gnueabihf/4.9/include -I./arch/arm/include -Iarch/arm/include/generated/uapi -Iarch/arm/include/generated  -Iinclude -I./arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I./include/uapi -Iinclude/generated/uapi -include ./include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-bcm2709/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -std=gnu89 -fno-PIE -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fno-ipa-sra -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-delete-null-pointer-checks -Wno-maybe-uninitialized -O2 --param=allow-store-data-races=0 -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -pg -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -Werror=date-time -DCC_HAVE_ASM_GOTO  -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(lab6pt2.mod)"  -D"KBUILD_MODNAME=KBUILD_STR(lab6pt2)" -DMODULE  -c -o /home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.o /home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.c
 
-source_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := /home/pi/workspace/ECE4220/lab6/src/hrtimer_test.c
+source_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.o := /home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.c
 
-deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := \
+deps_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.o := \
+    $(wildcard include/config/module/unload.h) \
   include/linux/module.h \
     $(wildcard include/config/modules.h) \
     $(wildcard include/config/sysfs.h) \
@@ -17,7 +18,6 @@ deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := \
     $(wildcard include/config/event/tracing.h) \
     $(wildcard include/config/ftrace/mcount/record.h) \
     $(wildcard include/config/livepatch.h) \
-    $(wildcard include/config/module/unload.h) \
     $(wildcard include/config/constructors.h) \
     $(wildcard include/config/debug/set/module/ronx.h) \
   include/linux/list.h \
@@ -424,96 +424,9 @@ deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o := \
     $(wildcard include/config/have/mod/arch/specific.h) \
     $(wildcard include/config/modules/use/elf/rel.h) \
     $(wildcard include/config/modules/use/elf/rela.h) \
-  include/linux/hrtimer.h \
-    $(wildcard include/config/missed/timer/offsets/hist.h) \
-    $(wildcard include/config/high/res/timers.h) \
-    $(wildcard include/config/time/low/res.h) \
-    $(wildcard include/config/timerfd.h) \
-  include/linux/timerqueue.h \
-  include/linux/gpio.h \
-    $(wildcard include/config/gpiolib.h) \
-    $(wildcard include/config/arch/have/custom/gpio/h.h) \
-  arch/arm/include/asm/gpio.h \
-    $(wildcard include/config/arch/nr/gpio.h) \
-  include/asm-generic/gpio.h \
-  include/linux/of.h \
-    $(wildcard include/config/sparc.h) \
-    $(wildcard include/config/of/dynamic.h) \
-    $(wildcard include/config/of.h) \
-    $(wildcard include/config/attach/node.h) \
-    $(wildcard include/config/detach/node.h) \
-    $(wildcard include/config/add/property.h) \
-    $(wildcard include/config/remove/property.h) \
-    $(wildcard include/config/update/property.h) \
-    $(wildcard include/config/no/change.h) \
-    $(wildcard include/config/change/add.h) \
-    $(wildcard include/config/change/remove.h) \
-    $(wildcard include/config/of/resolve.h) \
-    $(wildcard include/config/of/overlay.h) \
-  include/linux/mod_devicetable.h \
-  include/linux/uuid.h \
-  include/uapi/linux/uuid.h \
-  include/linux/property.h \
-  include/linux/fwnode.h \
-  include/linux/gpio/driver.h \
-    $(wildcard include/config/gpiolib/irqchip.h) \
-    $(wildcard include/config/of/gpio.h) \
-    $(wildcard include/config/pinctrl.h) \
-  include/linux/irq.h \
-    $(wildcard include/config/irq/domain/hierarchy.h) \
-    $(wildcard include/config/generic/pending/irq.h) \
-    $(wildcard include/config/hardirqs/sw/resend.h) \
-    $(wildcard include/config/generic/irq/legacy/alloc/hwirq.h) \
-    $(wildcard include/config/generic/irq/legacy.h) \
-  include/linux/irqhandler.h \
-  include/linux/irqreturn.h \
-  include/linux/irqnr.h \
-  include/uapi/linux/irqnr.h \
-  include/linux/io.h \
-    $(wildcard include/config/have/arch/huge/vmap.h) \
-    $(wildcard include/config/has/ioport/map.h) \
-  arch/arm/include/asm/io.h \
-    $(wildcard include/config/pci.h) \
-    $(wildcard include/config/need/mach/io/h.h) \
-    $(wildcard include/config/pcmcia/soc/common.h) \
-    $(wildcard include/config/isa.h) \
-    $(wildcard include/config/pccard.h) \
-  include/linux/blk_types.h \
-    $(wildcard include/config/block.h) \
-    $(wildcard include/config/blk/cgroup.h) \
-    $(wildcard include/config/blk/dev/integrity.h) \
-  include/asm-generic/pci_iomap.h \
-    $(wildcard include/config/no/generic/pci/ioport/map.h) \
-    $(wildcard include/config/generic/pci/iomap.h) \
-  include/xen/xen.h \
-    $(wildcard include/config/xen.h) \
-    $(wildcard include/config/xen/dom0.h) \
-    $(wildcard include/config/xen/pvh.h) \
-  arch/arm/mach-bcm2709/include/mach/io.h \
-  include/asm-generic/io.h \
-    $(wildcard include/config/generic/iomap.h) \
-  include/linux/vmalloc.h \
-  arch/arm/include/asm/irq.h \
-    $(wildcard include/config/sparse/irq.h) \
-    $(wildcard include/config/multi/irq/handler.h) \
-  arch/arm/include/generated/asm/irq_regs.h \
-  include/asm-generic/irq_regs.h \
-  include/linux/irqdesc.h \
-    $(wildcard include/config/irq/preflow/fasteoi.h) \
-    $(wildcard include/config/proc/fs.h) \
-    $(wildcard include/config/handle/domain/irq.h) \
-  arch/arm/include/asm/hw_irq.h \
-  include/linux/irqchip/chained_irq.h \
-  include/linux/irqdomain.h \
-    $(wildcard include/config/irq/domain.h) \
-  include/linux/radix-tree.h \
-  include/linux/pinctrl/pinctrl.h \
-    $(wildcard include/config/generic/pinconf.h) \
-  include/linux/seq_file.h \
-  include/linux/pinctrl/pinctrl-state.h \
-  include/linux/gpio/consumer.h \
-    $(wildcard include/config/gpio/sysfs.h) \
+  include/linux/vermagic.h \
+  include/generated/utsrelease.h \
 
-/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o: $(deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o)
+/home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.o: $(deps_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.o)
 
-$(deps_/home/pi/workspace/ECE4220/lab6/src/hrtimer_test.o):
+$(deps_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.o):

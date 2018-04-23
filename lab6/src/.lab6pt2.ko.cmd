@@ -1,0 +1,1 @@
+cmd_/home/pi/workspace/ECE4220/lab6/src/lab6pt2.ko := ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/pi/workspace/ECE4220/lab6/src/lab6pt2.ko /home/pi/workspace/ECE4220/lab6/src/lab6pt2.o /home/pi/workspace/ECE4220/lab6/src/lab6pt2.mod.o

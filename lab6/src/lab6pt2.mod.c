@@ -19,9 +19,14 @@ __used
 __attribute__((section("__versions"))) = {
 	{ 0x1fd34168, __VMLINUX_SYMBOL_STR(module_layout) },
 	{ 0x544f18ad, __VMLINUX_SYMBOL_STR(hrtimer_cancel) },
+	{ 0xf20dabd8, __VMLINUX_SYMBOL_STR(free_irq) },
 	{ 0x12685075, __VMLINUX_SYMBOL_STR(hrtimer_start_range_ns) },
 	{ 0x926f260, __VMLINUX_SYMBOL_STR(hrtimer_init) },
+	{ 0xd6b8e852, __VMLINUX_SYMBOL_STR(request_threaded_irq) },
+	{ 0x8e865d3c, __VMLINUX_SYMBOL_STR(arm_delay_ops) },
 	{ 0x79c5a9f0, __VMLINUX_SYMBOL_STR(ioremap) },
+	{ 0xfcec0987, __VMLINUX_SYMBOL_STR(enable_irq) },
+	{ 0x27bbf221, __VMLINUX_SYMBOL_STR(disable_irq_nosync) },
 	{ 0x2e5810c6, __VMLINUX_SYMBOL_STR(__aeabi_unwind_cpp_pr1) },
 	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
 	{ 0xd525859a, __VMLINUX_SYMBOL_STR(hrtimer_forward) },
@@ -35,4 +40,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "3A694CCC0A6B7E5E2339D93");
+MODULE_INFO(srcversion, "A823DD9340C75140126E44E");
