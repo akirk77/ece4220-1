@@ -20,7 +20,12 @@
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
+#include <linux/fs.h>
 #include <asm/io.h>
+#include <asm/uaccess.h>
+
+#define MSG_SIZE 50
+#define CDEV_NAME "Lab6"
 
 MODULE_LICENSE("GPL");
 
@@ -35,6 +40,49 @@ unsigned long * GP_CLEAR;
 unsigned long * GP_AREN;
 unsigned long * GP_PUD;
 unsigned long * GP_EVENT;
+
+static int major;
+static char msg[MSG_SIZE];
+
+
+static ssize_t device_read( struct file *filp, char __user * buffer, size_t length, loff_t *offset )
+{
+	ssize_t dummy = copy_to_user( buffer, msg, length );
+
+	msg[0] = '\0';
+
+	return length;
+
+}
+
+static ssize_t device_write( struct file * filp, const char __user *buff, size_t len, loff_t *off )
+{
+
+	ssize_t dummy;
+
+	if( len > MSG_SIZE )
+		return -EINVAL;
+
+	dummy = copy_from_user( msg, buff, len );
+
+	if( len == MSG_SIZE )
+	{
+		msg[len-1] = '\0';
+	} else {
+		msg[len] = '\0';
+	}
+
+	printk( "Message from user space: %s\n", msg );
+
+	return len;
+
+}
+
+static struct file_operations fops =
+{
+        .read = device_read,
+        .write = device_write,
+};
 
 //Interrupt Service
 static irqreturn_t button_isr( int irq, void * dev_id )
@@ -172,6 +220,15 @@ int timer_init(void)
 		printk( "Interrupt failed to register" );
 	}
 
+	//SETUP the Characted Device
+	major = register_chrdev( 0, CDEV_NAME, &fops );
+	if( major < 0 ) 
+	{
+		printk( "Couldn't registeer the character device: %d\n", major );
+		return major;
+	}
+	printk( "Create char device (node) with: sudo mknod /dev/%s c %d 0\n", CDEV_NAME, major );
+
 	//Starting Message
 	printk( "We're all setup and running!!!" );
 
@@ -201,11 +258,8 @@ void timer_exit(void)
 	//Get rid of the interrupt handler
 	free_irq( 79, &mydev_id );
 
-	//Fix Buttons
-        //iowrite32( 0x00000000, GP_PUD );
-        //udelay( 100 );
-        //iowrite32( 0x00000000, ( GP_PUD + 1 ) );
-        //udelay( 100 );
+	//Unregister Characted Device
+	unregister_chrdev( major, CDEV_NAME );
 
 	int ret;
   	ret = hrtimer_cancel(&hr_timer);	// cancels the timer.

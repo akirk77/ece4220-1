@@ -19,14 +19,19 @@ __used
 __attribute__((section("__versions"))) = {
 	{ 0x1fd34168, __VMLINUX_SYMBOL_STR(module_layout) },
 	{ 0x544f18ad, __VMLINUX_SYMBOL_STR(hrtimer_cancel) },
+	{ 0x6bc3fbc0, __VMLINUX_SYMBOL_STR(__unregister_chrdev) },
 	{ 0xf20dabd8, __VMLINUX_SYMBOL_STR(free_irq) },
 	{ 0x12685075, __VMLINUX_SYMBOL_STR(hrtimer_start_range_ns) },
 	{ 0x926f260, __VMLINUX_SYMBOL_STR(hrtimer_init) },
+	{ 0x6f73b5fe, __VMLINUX_SYMBOL_STR(__register_chrdev) },
 	{ 0xd6b8e852, __VMLINUX_SYMBOL_STR(request_threaded_irq) },
 	{ 0x8e865d3c, __VMLINUX_SYMBOL_STR(arm_delay_ops) },
 	{ 0x79c5a9f0, __VMLINUX_SYMBOL_STR(ioremap) },
+	{ 0xfa2a45e, __VMLINUX_SYMBOL_STR(__memzero) },
+	{ 0x28cc25db, __VMLINUX_SYMBOL_STR(arm_copy_from_user) },
 	{ 0xfcec0987, __VMLINUX_SYMBOL_STR(enable_irq) },
 	{ 0x27bbf221, __VMLINUX_SYMBOL_STR(disable_irq_nosync) },
+	{ 0xf4fa543b, __VMLINUX_SYMBOL_STR(arm_copy_to_user) },
 	{ 0x2e5810c6, __VMLINUX_SYMBOL_STR(__aeabi_unwind_cpp_pr1) },
 	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
 	{ 0xd525859a, __VMLINUX_SYMBOL_STR(hrtimer_forward) },
@@ -40,4 +45,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "3FCAD42921562481360AA8D");
+MODULE_INFO(srcversion, "616EABEBBF23CB324AE3F9E");
