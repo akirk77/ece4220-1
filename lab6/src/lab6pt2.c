@@ -34,16 +34,52 @@ unsigned long * GP_SET;
 unsigned long * GP_CLEAR;
 unsigned long * GP_AREN;
 unsigned long * GP_PUD;
+unsigned long * GP_EVENT;
 
 //Interrupt Service
 static irqreturn_t button_isr( int irq, void * dev_id )
 {
-	disable_irq_nosync( irq );
+	disable_irq_nosync( 79 );
 
 	//Figure out which buttonw as pressed and handle sound
 
+	unsigned long btn = *GP_EVENT | 0x1F0000 ;
+	switch( btn )
+	{
+		case 65536:
+			//A3
+			timer_interval_ns = 4545454;
+			printk( "Playing A2" );
+			break;
+                case 131072:
+                        //B3
+                        timer_interval_ns = 4048582;
+                        printk( "Playing A2" );
+                        break;
+                case 262144:
+                        //C4
+                        timer_interval_ns = 3816794;
+                        printk( "Playing C4" );
+                        break;
+                case 524288:
+                        //D4
+                        timer_interval_ns = 3000000;
+                        printk( "Playing D4" );
+                        break;
+                case 1048576:
+                        //E4
+                        timer_interval_ns = 2500000;
+                        printk( "Playing E4" );
+                        break;
+
+			
+	}
+
+	//Clear Event Status Register
+	iowrite32( ( *GP_EVENT | 0x1F0000 ), GP_EVENT );
+
 	printk( "Interrupt Handled" );
-	enable_irq( irq );
+	enable_irq( 79 );
 
 	return IRQ_HANDLED;
 }
@@ -93,48 +129,48 @@ enum hrtimer_restart timer_callback(struct hrtimer *timer_for_restart)
 
 int timer_init(void)
 {
+	int interrupt = 0;
+
 	//Setup GPIO Stuff
 	selpin = (unsigned long * ) ioremap( ( 0x3f200000 ), 4096 );
 	GP_SET = selpin + 7;
 	GP_CLEAR = selpin + 10;
 	GP_AREN = selpin + 31;
 	GP_PUD = selpin + 37;
+	GP_EVENT = selpin + 16;
 
 	//Prepare Pins for writing
-	iowrite32( ( *selpin | 0x00040040 ), selpin );
-	iowrite32( ( *selpin | 0x00000044 ), selpin );
+	iowrite32( ( *selpin | 0x00040000 ), selpin );
 
 	//Configure Button Pins as input
-	iowrite32( ( *( selpin + 1 ) | 0x00000000 ), ( selpin + 1 ) );
-	iowrite32( ( *( selpin + 2 ) | 0x00000000 ), ( selpin + 2 ) );
+		iowrite32( ( *( selpin + 1 ) | 0x00000000 ), ( selpin + 1 ) );
+		iowrite32( ( *( selpin + 2 ) | 0x00000000 ), ( selpin + 2 ) );
+	//Configure Button Pins as input
+		//iowrite32( 0x00000000, (selpin + 1) );
+		//iowrite32( 0x00000000, (selpin + 2) );
 
 	//Configure Pull-up/down control
-	iowrite32( ( *GP_PUD | 0x00000001 ), GP_PUD );
+	iowrite32( ( *GP_PUD | 0x155 ), GP_PUD );
 	udelay( 100 ); // Wait time for setup of control signal
+
 	//Set PUD clock
 	iowrite32( ( *( GP_PUD + 1 ) | 0x001F0000 ), ( GP_PUD + 1 ) );
 	udelay( 100 );
-	//iowrite32( ( *GP_PUD | 0x00000000 ), GP_PUD );
-	//udelay( 100 );
-	//iowrite32( ( *( GP_PUD + 1 ) | 0x00000000 ), ( GP_PUD + 1 ) );
-	//udelay( 100 );
+
+	//Undo the stuffs
+	iowrite32( ( *GP_PUD & ~(0x155) ), GP_PUD );
+	iowrite32( ( *( GP_PUD + 1 ) & ~(0x1F0000) ), ( GP_PUD + 1 ) );
 	
 	//Enable Async Rising Edge for buttons
-	iowrite32( ( *GP_AREN | 0x001F0000 ), GP_AREN );
+	iowrite32( ( *GP_AREN | 0x1F0000 ), GP_AREN );
 
 	//Setup the interrupt
-	int interrupt = 0;
-	interrupt = request_irq( 16, button_isr, IRQF_SHARED, "Button_handler", &mydev_id ); 
-        interrupt = request_irq( 17, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-        interrupt = request_irq( 18, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-        interrupt = request_irq( 19, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-        interrupt = request_irq( 20, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-        interrupt = request_irq( 36, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-        interrupt = request_irq( 11, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-        interrupt = request_irq( 12, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-        interrupt = request_irq( 35, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-        interrupt = request_irq( 38, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
-
+	//int interrupt = 0;
+	interrupt = request_irq( 79, button_isr, IRQF_SHARED, "Button_handler", &mydev_id );
+	if( interrupt < 0 )
+	{
+		printk( "Interrupt failed to register" );
+	}
 
 	//Starting Message
 	printk( "We're all setup and running!!!" );
@@ -157,24 +193,19 @@ int timer_init(void)
 
 void timer_exit(void)
 {
-	//Get rid of the interrupt handler
-	free_irq( 16, &mydev_id );
-        free_irq( 17, &mydev_id );
-        free_irq( 18, &mydev_id );
-        free_irq( 19, &mydev_id );
-        free_irq( 20, &mydev_id );
-        free_irq( 36, &mydev_id );
-        free_irq( 11, &mydev_id );
-        free_irq( 12, &mydev_id );
-        free_irq( 35, &mydev_id );
-        free_irq( 38, &mydev_id );
 
+	//Disable ASync Rising Edge
+	//iowrite32( ( *GP_AREN | 0x00000000 ), GP_AREN );
+	//iowrite32( 0x00000000, GP_AREN );
+
+	//Get rid of the interrupt handler
+	free_irq( 79, &mydev_id );
 
 	//Fix Buttons
-        iowrite32( ( *GP_PUD | 0x00000000 ), GP_PUD );
-        udelay( 100 );
-        iowrite32( ( *( GP_PUD + 1 ) | 0x00000000 ), ( GP_PUD + 1 ) );
-        udelay( 100 );
+        //iowrite32( 0x00000000, GP_PUD );
+        //udelay( 100 );
+        //iowrite32( 0x00000000, ( GP_PUD + 1 ) );
+        //udelay( 100 );
 
 	int ret;
   	ret = hrtimer_cancel(&hr_timer);	// cancels the timer.
