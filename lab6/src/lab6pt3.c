@@ -23,6 +23,7 @@
 #include <linux/fs.h>
 #include <asm/io.h>
 #include <asm/uaccess.h>
+#include <linux/string.h>
 
 #define MSG_SIZE 50
 #define CDEV_NAME "Lab6"
@@ -43,13 +44,69 @@ unsigned long * GP_EVENT;
 
 static int major;
 static char msg[MSG_SIZE];
+static char send[MSG_SIZE];
 
+void changeSound( char newNote )
+{
+	static char lastNote;
+	
+//	printk( "\nChanging Note! %c -> %c", lastNote, newNote );
+
+	if( newNote != lastNote )
+	{
+
+	        printk( "\nChanging Note! %c -> %c", lastNote, newNote );
+
+                switch( newNote )
+                {
+                        case 'A': {
+                                //A3
+				if( timer_interval_ns != 4545454 ) {
+                                        timer_interval_ns = 4545454;
+                                        printk( "\nPlaying A3" );
+				} break;
+			}
+                        case 'B': {
+                                //B3
+                                if( timer_interval_ns != 4048582 ) {
+                                        timer_interval_ns = 4048582;
+                                        printk( "\nPlaying B3" );
+                                } break;
+                        }
+                        case 'C': {
+                                //C3
+                                if( timer_interval_ns != 3816794 ) {
+                                        timer_interval_ns = 3816794;
+                                        printk( "\nPlaying C4" );
+                                } break;
+                        }
+                        case 'D': {
+                                //D3
+                                if( timer_interval_ns != 3000000 ) {
+                                        timer_interval_ns = 3000000;
+                                        printk( "\nPlaying D4" );
+                                } break;
+                        }
+                        case 'E': {
+                                //E3
+                                if( timer_interval_ns != 2500000 ) {
+                                        timer_interval_ns = 2500000;
+                                	printk( "\nPlaying E4" );
+                       		} break;
+	                }
+		}
+	}
+
+	lastNote = newNote;
+}
 
 static ssize_t device_read( struct file *filp, char __user * buffer, size_t length, loff_t *offset )
 {
-	ssize_t dummy = copy_to_user( buffer, msg, length );
+	ssize_t dummy = copy_to_user( buffer, send, length );
 
-	msg[0] = '\0';
+//	printk( "\nSent message to user: %s", buffer );
+
+	send[0] = '\0';
 
 	return length;
 
@@ -72,7 +129,14 @@ static ssize_t device_write( struct file * filp, const char __user *buff, size_t
 		msg[len] = '\0';
 	}
 
-	printk( "Message from user space: %s\n", msg );
+	printk( "\nMessage from user space: %s", msg );
+
+	char lastchar;
+
+	if( msg[0] == '@' )
+	{
+		changeSound( msg[1] ); 
+	}
 
 	return len;
 
@@ -97,26 +161,31 @@ static irqreturn_t button_isr( int irq, void * dev_id )
 		case 65536:
 			//A3
 			timer_interval_ns = 4545454;
+			strcpy( send, "@A" );
 			printk( "\nPlaying A2" );
 			break;
                 case 131072:
                         //B3
                         timer_interval_ns = 4048582;
+			strcpy( send, "@B" );
                         printk( "\nPlaying B3" );
                         break;
                 case 262144:
                         //C4
                         timer_interval_ns = 3816794;
+			strcpy( send, "@C" );
                         printk( "\nPlaying C4" );
                         break;
                 case 524288:
                         //D4
                         timer_interval_ns = 3000000;
+			strcpy( send, "@D" );
                         printk( "\nPlaying D4" );
                         break;
                 case 1048576:
                         //E4
                         timer_interval_ns = 2500000;
+			strcpy( send, "@E" );
                         printk( "\nPlaying E4" );
                         break;
 

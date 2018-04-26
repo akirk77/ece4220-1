@@ -10,8 +10,22 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <sched.h>
 
 #define MAX_MSG 40
+
+#define CHAR_DEV "/dev/Lab6"
+
+int sock;
+struct sockaddr_in server;
+struct sockaddr_in addr;
+char name[12];
+char * myIP;
+socklen_t fromlen;
+
+void wait4btn( void * ptr );
 
 void error( const char *msg )
 {
@@ -29,16 +43,16 @@ int main( int argc, char * argv[] )
 	}
 	
 	int port = atoi( argv[1] );
-	char name[12];
+	//char name[12];
 	strcpy( name, argv[2] );
 
 
-	int sock;
+	//int sock;
 	int length;
 	int n;
-	socklen_t fromlen;
-	struct sockaddr_in server;
-	struct sockaddr_in addr;
+	//socklen_t fromlen;
+	//struct sockaddr_in server;
+	//struct sockaddr_in addr;
 //	struct sockaddr_in rec;
 	char buffer[MAX_MSG];
 	int I_THE_MASTER = 0;
@@ -66,7 +80,7 @@ int main( int argc, char * argv[] )
 	snprintf( ifr.ifr_name, IFNAMSIZ, "wlan0" );
 	ioctl( sock, SIOCGIFADDR, &ifr );	
 
-	char * myIP = malloc( sizeof(char) * 16 );
+	myIP = malloc( sizeof(char) * 16 );
 	myIP = inet_ntoa( ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr );
 	printf( "My Local IP is: %s\n\n", inet_ntoa( ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr ) );
 
@@ -80,7 +94,9 @@ int main( int argc, char * argv[] )
 	        exit( -1 );
         }
 
-
+	//Create thread to listen for button input
+	pthread_t btnThread;
+	pthread_create( &btnThread, NULL, (void *) wait4btn, (void *) &sock );
 
 	while( 1 )
 	{	
@@ -153,7 +169,7 @@ int main( int argc, char * argv[] )
 		      }
 		      else if( cNum == cuteNumber ) 
 		      {
-		        if( cIp >= myLastAddr ) {
+		        if( cIp > myLastAddr ) {
 		          I_THE_MASTER = 0;
 		        } else {                  
 		          I_THE_MASTER = 1;
@@ -167,7 +183,41 @@ int main( int argc, char * argv[] )
 		}
 		else if( buffer[0] == '@' )
 		{
+		
+			int cdev_id, dummy;
+			static char lastChar;
 			
+			if( lastChar != buffer[1] )
+			{
+		
+				if( ( cdev_id = open( CHAR_DEV, O_WRONLY ) ) == -1 )
+				{
+					printf( "Cannot open device %s\n", CHAR_DEV );
+				}
+			
+				if( buffer[1] != '\0' )
+				{
+					dummy = write( cdev_id, buffer, sizeof( buffer ) );
+				}
+
+				close( cdev_id );
+
+				if( I_THE_MASTER )
+				{
+					//Forward the note to all the other boards!
+	                	         addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
+        	                	n = sendto( sock, buffer, MAX_MSG, 0, (const struct sockaddr *) & addr, fromlen );
+		                        if( n < 0 )
+        	        	        {
+        		                        error( "Broadcasting other note" );
+	                	        }
+	
+				}	
+	
+			}
+
+			lastChar = buffer[1];
+
 		}
 
 		//printf( "Command recieved from client: %s", buffer );
@@ -177,5 +227,50 @@ int main( int argc, char * argv[] )
 	}
 
 	return 0;
+
+}
+
+void wait4btn( void * ptr )
+{
+
+	//puts( "Button Press Thread Started" );
+
+	//Open the character device
+	int cdev_id, dummy;
+	char buffer[MAX_MSG];
+
+	if((cdev_id = open( CHAR_DEV, O_RDONLY )) == -1 )
+	{
+		printf( "Cannot open device %d\n", CHAR_DEV );
+	}
+
+	while(1)
+	{
+		//puts( "Started btnWait loop" );
+
+		dummy = read( cdev_id, buffer, sizeof(buffer) );
+		if( dummy != sizeof(buffer) )
+		{
+			printf( "Read Failed" );
+			break;
+		}
+		else if( buffer[0] != '\0' )
+		{	
+			printf( "\nRecieved Button pressed: %s", buffer );
+			buffer[0] = '\0';
+
+			printf( "\nSending Command: @%c to %s", buffer[1], myIP );
+	
+                        char send2Self[MAX_MSG];
+                        sprintf( send2Self, "@%c", buffer[1] );
+
+                        addr.sin_addr.s_addr = inet_addr( myIP );
+                        sendto( sock, send2Self, MAX_MSG, 0, (const struct sockaddr *)&addr, fromlen );
+
+		}
+	
+		usleep( 200 );	
+
+	}	
 
 }
