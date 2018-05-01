@@ -10,14 +10,27 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#define MAX_MSG 100
 
-#define MAX_MSG 40
+typedef struct command_
+{
+	char ip[40];
+	char desc[40];
+	double voltage;
+	double timestamp;
+	struct command_ * next;
+} Command, *pCommand;
+
 
 void error( const char *msg )
 {
 	perror( msg );
 	exit( 0 );
 }
+
+void writeList( int, Command * head );
+void freeList( Command * head );
+void printList( Command * head );
 
 int main( int argc, char * argv[] )
 {
@@ -170,14 +183,80 @@ int main( int argc, char * argv[] )
 			puts( "Final Project" );
 			
 			double voltage;
-			unsigned int ts_nsec;
+			double ts;
 			char command[40];
+			char ip[40];
 		
-			sscanf( buffer, "$ %s %lf %u", command, &voltage, &ts_nsec );
+			sscanf( buffer, "$ %s %s %lf %lf", ip, command, &voltage, &ts );
 
-			printf( "\nCommand: %s\nVoltage: %lf\nTimestamp: %u\n", command, voltage, ts_nsec );
+			printf( "\nCommand: %s\nVoltage: %lf\nTimestamp: %lf\n", command, voltage, ts );
 
-			
+			Command * head = NULL;
+			Command * prevCmd = NULL;
+			Command * cmd;
+	
+			int records = 0;
+			FILE * fp;
+			fp = fopen( "events.txt", "r" );			
+	
+			if( fp != NULL )
+			{			
+				fscanf( fp, "%d\n", &records );
+				printf( "\nThere are %d records!", records );
+				
+				//Command * head = NULL;
+				//Command * prevCmd = NULL;
+				//Command * cmd;
+				char end = 0;
+
+				int loop = records;
+				while( loop > 0 )
+				{
+					Command * cmd = malloc( sizeof( Command ) );
+					cmd->next = NULL;
+					if( loop == records ) { head = cmd; }
+
+					end = fscanf( fp, "$ %s %s %lf %lf\n", &cmd->ip, &cmd->desc, &cmd->voltage, &cmd->timestamp );
+
+					printf( "\nRead values: %.20s, %.10s, %.6lf, %.6u", cmd->ip, cmd->desc, cmd->voltage, cmd->timestamp );
+					
+					if( prevCmd != NULL )
+					{
+						//printf( "\nPointed %p to %p", prevCmd, cmd );
+						prevCmd->next = cmd;
+					}
+					prevCmd = cmd;
+
+					--loop;
+				}
+
+			}
+			else
+			{
+				//If No events.txt file exists, create it and put INIT command in there.	
+			}
+	
+			fclose( fp );
+
+			puts( "\nAdding new value to list" );
+
+			//Add Element sent by server to list
+			records++;
+                        Command * newCmd = malloc( sizeof(Command) );
+                        newCmd->next = NULL;
+                        //cmd->desc = command;
+			strcpy( newCmd->ip, ip );
+			strcpy( newCmd->desc, command );
+			newCmd->voltage = voltage;
+			newCmd->timestamp = ts;
+
+			prevCmd->next = newCmd;
+
+			puts("\n\nTHESE VALUES EXIST: " );
+
+			printList( head );
+			writeList( records, head );
+			freeList( head );
 
 		}
 
@@ -189,4 +268,56 @@ int main( int argc, char * argv[] )
 
 	return 0;
 
+}
+
+void printList( Command * head )
+{
+
+	if( head == NULL )
+	{
+		return;
+	}
+	
+	printList( head->next );
+	usleep( 50000 );
+	
+	puts( head->desc );
+}
+
+void freeList( Command * head )
+{
+
+        if( head == NULL )
+        {
+                return;
+        }
+
+        freeList( head->next );
+        usleep( 50000 );
+
+	printf( "\nFreeing: %s", head->desc );
+	free( head );
+
+}
+
+void writeList( int records, Command * head )
+{
+
+	puts( "Writing list back to file" );
+
+        FILE * fp;
+        fp = fopen( "events.txt", "w+" );
+	
+	Command * cmd = head;
+	if( fp != NULL )
+	{
+		fprintf( fp, "%d\n", records );
+		while( cmd != NULL )
+		{
+			fprintf( fp, "$ %s %s %lf %lf\n", cmd->ip, cmd->desc, cmd->voltage, cmd->timestamp );
+			cmd = cmd->next;		
+		}
+	}
+	fclose( fp );        
+	
 }
