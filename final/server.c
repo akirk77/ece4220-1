@@ -31,69 +31,74 @@ void error( const char *msg )
 void writeList( int, Command * head );
 void freeList( Command * head );
 void printList( Command * head );
+void sendCommand( void * ptr );
+
+int sock;
+struct sockaddr_in server, anybody;
+socklen_t fromlen;
+char buffer[MAX_MSG];
 
 int main( int argc, char * argv[] )
 {
 
-	if( argc != 3 )
+	if( argc != 2 )
 	{
-		puts( "Use as follows: /server [PORT#] [NAME]" );
+		puts( "Use as follows: /server [PORT#]" );
 		return 1;
 	}
 	
 	int port = atoi( argv[1] );
 	char name[12];
-	strcpy( name, argv[2] );
+	//strcpy( name, argv[2] );
 
 
-	int sock;
+	//int sock;
 	int length;
 	int n;
-	socklen_t fromlen;
-	struct sockaddr_in server;
-	struct sockaddr_in addr;
-//	struct sockaddr_in rec;
-	char buffer[MAX_MSG];
+	//socklen_t fromlen;
+	//struct sockaddr_in server;
+	//struct sockaddr_in anybody;
+	//struct sockaddr_in rec;
+	//char buffer[MAX_MSG];
 	int I_THE_MASTER = 0;
 	int cuteNumber;	
+
+	struct hostent *hp;
 	
 	sock = socket( AF_INET, SOCK_DGRAM, 0 );
 	if( sock < 0 ) {
 		error( "Opening socket" );
 	}
 
-	length = sizeof( server );
-	bzero( &server, length );
-	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons( port );
-
-	if( bind(   sock, (struct sockaddr *) &server, length ) < 0 ) {
-		error( "binding" );
+	int boolval = 1;
+	if( setsockopt( sock, SOL_SOCKET, SO_BROADCAST, &boolval, sizeof(boolval) ) < 0 )
+	{
+		puts( "error setting scok et options" );
+		exit(-1);
 	}
+
+	anybody.sin_family = AF_INET;
+	anybody.sin_port = htons( port );
+	anybody.sin_addr.s_addr = inet_addr( "128.206.19.255" );
 
 	fromlen= sizeof( struct sockaddr_in );
 
-	struct ifreq ifr;
-	ifr.ifr_addr.sa_family = AF_INET;
-	snprintf( ifr.ifr_name, IFNAMSIZ, "wlan0" );
-	ioctl( sock, SIOCGIFADDR, &ifr );	
-
-	char * myIP = malloc( sizeof(char) * 16 );
-	myIP = inet_ntoa( ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr );
-	printf( "My Local IP is: %s\n\n", inet_ntoa( ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr ) );
-
-	//Setup broadcasting
-	int broadcast = 1;
-	addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
-	addr.sin_port = htons( port );
-	if( setsockopt( sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast) ) < 0 )
-        {
-        	printf( "Broadcast failure" );
-	        exit( -1 );
-        }
 
 
+	strcpy( buffer, "Setting things up..." );
+	
+	n = sendto( sock, buffer, sizeof(buffer), 0, (struct sockaddr *) &anybody, fromlen );
+	if( n < 0 )
+	{
+		puts( "\nMESSGE NTO SENT" );
+	}
+
+	puts( "\n WHILE IS STARTING" );
+
+
+	//Start PThread for Sending
+	pthread_t commandThread;
+	pthread_create( &commandThread, NULL, (void *) sendCommand, (void*) NULL  );
 
 	while( 1 )
 	{	
@@ -101,7 +106,7 @@ int main( int argc, char * argv[] )
 		bzero( buffer, MAX_MSG );
 			
 
-		n = recvfrom( sock, buffer, MAX_MSG, 0, (struct sockaddr *) &addr, &fromlen );
+		n = recvfrom( sock, buffer, MAX_MSG, 0, (struct sockaddr *) &server, &fromlen );
 		if( n < 0 ) {
 			error( "Receive from" );
 		}	
@@ -113,71 +118,10 @@ int main( int argc, char * argv[] )
 		printf( "\nReceived :: %s\n", buffer );
 	
 		fflush( stdout );	
-		if( !strcmp( buffer, "WHOIS\n" ) )
+		
+		if( buffer[0] == '#' )
 		{
-			puts( "Doing WHOIS" );
-			if( I_THE_MASTER == 1 )
-			{
-				puts("I the master" );
-					
-				char mastery[MAX_MSG];
-				sprintf( mastery, "%s on board %s is master!", name, myIP );
-				
-				//addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
-				sendto( sock, mastery, MAX_MSG, 0, (const struct sockaddr *)&addr, fromlen );
 			}
-		}
-		else if( !strcmp( buffer, "VOTE\n" ) )
-		{
-			puts( "WOW! It's time to elect another leader of the free world!" );
-
-		        cuteNumber = rand() % 10;
-                        char voteReturn[18];
-                        sprintf( voteReturn, "# %s %d", myIP, cuteNumber);
-
-			addr.sin_addr.s_addr = inet_addr( "128.206.19.255" );
-                        n = sendto( sock, voteReturn, MAX_MSG, 0, (const struct sockaddr *)&addr, fromlen );
-			if( n < 0 )
-			{
-				error( "Sending Vote" );
-			}
-
-//	                recvfrom( sock, buffer, MAX_MSG, 0, (struct sockaddr *) &addr, &fromlen );
-//			printf( "\nReceived :: %s", buffer );
-
-
-			I_THE_MASTER = 1;
-		}
-		else if( buffer[0] == '#' )
-		{
-	
-			unsigned int cNum;
-			unsigned int cIp;
-      
-			unsigned int myLastAddr;
-      			sscanf( myIP, "%*u.%*u.%*u.%u %u", &myLastAddr );
-			
-			sscanf( buffer, "# %*u.%*u.%*u.%u %u",  &cIp, &cNum );
-			printf( "\nVote recieved with :: Ip: %u | Num : %u | myIPL : %u | myNUM : %d\n", cIp, cNum, myLastAddr, cuteNumber );
-      
-		      if( cNum < cuteNumber )
-		      {
-		        I_THE_MASTER = 1;
-		      }
-		      else if( cNum == cuteNumber ) 
-		      {
-		        if( cIp >= myLastAddr ) {
-		          I_THE_MASTER = 0;
-		        } else {                  
-		          I_THE_MASTER = 1;
-		        }
-		      }
-		      else
-		      {
-		        I_THE_MASTER = 0;
-		      }
-
-		}
 		else if( buffer[0] == '$' )
 		{
 			puts( "Final Project" );
@@ -268,6 +212,24 @@ int main( int argc, char * argv[] )
 
 	return 0;
 
+}
+
+void sendCommand( void * ptr )
+{
+	int n;
+
+	while( 1 )
+	{
+	
+		char * inBuffer[MAX_MSG];
+		puts( "Input your message: " );
+		scanf( "%s", inBuffer );
+
+	        n = sendto( sock, buffer, sizeof(buffer), 0, (struct sockaddr *) &anybody, fromlen );	
+
+	}	
+
+	return;
 }
 
 void printList( Command * head )
