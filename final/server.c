@@ -33,6 +33,9 @@ void freeList( Command * head );
 void printList( Command * head );
 void sendCommand( void * ptr );
 
+void sortedInsert( Command**, Command* );
+void insertionSort( Command ** );
+
 int sock;
 struct sockaddr_in server, anybody;
 socklen_t fromlen;
@@ -198,7 +201,8 @@ int main( int argc, char * argv[] )
 
 			puts("\n\nTHESE VALUES EXIST: " );
 
-			printList( head );
+			printList( head );                       
+			sortList( &head );
 			writeList( records, head );
 			freeList( head );
 
@@ -214,6 +218,42 @@ int main( int argc, char * argv[] )
 
 }
 
+void insertionSort( Command ** head_ref )
+{
+    Command * sorted = NULL;
+    Command *current = *head_ref;
+    
+    while (current != NULL)
+    {
+        Command * next = current->next;
+        sortedInsert(&sorted, current);
+        current = next;
+    }
+ 
+    *head_ref = sorted;
+}
+ 
+void sortedInsert( Command** head_ref, Command* new_node)
+{
+    Command * current;
+    if (*head_ref == NULL || (*head_ref)->data >= new_node->data)
+    {
+        new_node->next = *head_ref;
+        *head_ref = new_node;
+    }
+    else
+    {
+        current = * head_ref;
+        while (current->next!=NULL &&
+               current->next->data < new_node->data)
+        {
+            current = current->next;
+        }
+        new_node->next = current->next;
+        current->next = new_node;
+    }
+}
+
 void sendCommand( void * ptr )
 {
 	int n;
@@ -224,8 +264,9 @@ void sendCommand( void * ptr )
 		char * inBuffer[MAX_MSG];
 		puts( "Input your message: " );
 		scanf( "%s", inBuffer );
-
-	        n = sendto( sock, buffer, sizeof(buffer), 0, (struct sockaddr *) &anybody, fromlen );	
+    
+    n = sendto( sock, buffer, sizeof(buffer), 0, (struct sockaddr *) &anybody, fromlen );
+    
 
 	}	
 
@@ -266,10 +307,16 @@ void writeList( int records, Command * head )
 {
 
 	puts( "Writing list back to file" );
-
-        FILE * fp;
-        fp = fopen( "events.txt", "w+" );
-	
+                                         
+  FILE * fp;
+  if( access( "events.txt", F_OK ) != -1 ) 
+  {    
+    fp = fopen( "events.txt", "w" );
+  }
+  else
+  {
+    fp = fopen( "events.txt", "w" );
+  }
 	Command * cmd = head;
 	if( fp != NULL )
 	{
