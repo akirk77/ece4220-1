@@ -10,7 +10,10 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <pthread.h>
+
 #define MAX_MSG 100
+
 
 typedef struct command_
 {
@@ -98,10 +101,34 @@ int main( int argc, char * argv[] )
 
 	puts( "\n WHILE IS STARTING" );
 
+	FILE * fp;
+	int records = 1;  
+        Command * head = NULL;
+        Command * prevCmd = NULL;
+        Command * cmd;
+
+	head = malloc( sizeof( Command ) );
+	//head->ip = 0;
+
+	strcpy( head->desc, "STRT" );
+
+        fp = fopen( "events.txt", "w+" );
+		
+
+                        if( fp == NULL )
+                        {
+				puts( "File couldn't be opened" );
+				return 1;
+			}
+        fclose( fp );
+
+
+
+//	printList( head );
 
 	//Start PThread for Sending
 	pthread_t commandThread;
-	pthread_create( &commandThread, NULL, (void *) sendCommand, (void*) NULL  );
+	pthread_create( &commandThread, NULL, (void *) sendCommand, (void*) head  );
 
 	while( 1 )
 	{	
@@ -124,72 +151,31 @@ int main( int argc, char * argv[] )
 		
 		if( buffer[0] == '#' )
 		{
-			}
+		}
+
 		else if( buffer[0] == '$' )
 		{
-			puts( "Final Project" );
+			//puts( "Final Project" );
 			
 			double voltage;
 			double ts;
 			char command[40];
 			char ip[40];
 		
-			sscanf( buffer, "$ %s %s %lf %lf", ip, command, &voltage, &ts );
+			sscanf( buffer, "$ %s %s %lf %lf", ip, command, &ts, &voltage );
 
-			printf( "\nCommand: %s\nVoltage: %lf\nTimestamp: %lf\n", command, voltage, ts );
+			//printf( "\nCommand: %s\nVoltage: %lf\nTimestamp: %lf\n", command, voltage, ts );
 
-			Command * head = NULL;
-			Command * prevCmd = NULL;
-			Command * cmd;
-	
-			int records = 0;
-			FILE * fp;
-			fp = fopen( "events.txt", "r" );			
-	
-			if( fp != NULL )
-			{			
-				fscanf( fp, "%d\n", &records );
-				printf( "\nThere are %d records!", records );
-				
-				//Command * head = NULL;
-				//Command * prevCmd = NULL;
-				//Command * cmd;
-				char end = 0;
+			//Command * head = NULL;
+			//Command * prevCmd = NULL;
+			//Command * cmd;
 
-				int loop = records;
-				while( loop > 0 )
-				{
-					Command * cmd = malloc( sizeof( Command ) );
-					cmd->next = NULL;
-					if( loop == records ) { head = cmd; }
-
-					end = fscanf( fp, "$ %s %s %lf %lf\n", &cmd->ip, &cmd->desc, &cmd->voltage, &cmd->timestamp );
-
-					printf( "\nRead values: %.20s, %.10s, %.6lf, %.6u", cmd->ip, cmd->desc, cmd->voltage, cmd->timestamp );
-					
-					if( prevCmd != NULL )
-					{
-						//printf( "\nPointed %p to %p", prevCmd, cmd );
-						prevCmd->next = cmd;
-					}
-					prevCmd = cmd;
-
-					--loop;
-				}
-
-			}
-			else
-			{
-				//If No events.txt file exists, create it and put INIT command in there.	
-			}
-	
-			fclose( fp );
-
-			puts( "\nAdding new value to list" );
+			//puts( "\nAdding new value to list" );
 
 			//Add Element sent by server to list
 			records++;
                         Command * newCmd = malloc( sizeof(Command) );
+
                         newCmd->next = NULL;
                         //cmd->desc = command;
 			strcpy( newCmd->ip, ip );
@@ -197,14 +183,23 @@ int main( int argc, char * argv[] )
 			newCmd->voltage = voltage;
 			newCmd->timestamp = ts;
 
+			cmd = head;
+			//puts( "Walking through list" );
+			while( cmd != NULL )
+			{
+				prevCmd = cmd;
+				cmd = cmd->next;
+			}
+
+//			cmd = newCmd
 			prevCmd->next = newCmd;
 
-			puts("\n\nTHESE VALUES EXIST: " );
+			//puts("\n\nTHESE VALUES EXIST: " );
 
-			printList( head );                       
-			sortList( &head );
+//			printList( head );                       
+			insertionSort( &head );
 			writeList( records, head );
-			freeList( head );
+//			freeList( head );
 
 		}
 
@@ -213,6 +208,8 @@ int main( int argc, char * argv[] )
 		//Do comparisons here to decide what operation will be executed when each command is received.	
 	
 	}
+
+	freeList( head );
 
 	return 0;
 
@@ -236,7 +233,7 @@ void insertionSort( Command ** head_ref )
 void sortedInsert( Command** head_ref, Command* new_node)
 {
     Command * current;
-    if (*head_ref == NULL || (*head_ref)->data >= new_node->data)
+    if (*head_ref == NULL || (*head_ref)->timestamp >= new_node->timestamp )
     {
         new_node->next = *head_ref;
         *head_ref = new_node;
@@ -245,7 +242,7 @@ void sortedInsert( Command** head_ref, Command* new_node)
     {
         current = * head_ref;
         while (current->next!=NULL &&
-               current->next->data < new_node->data)
+               current->next->timestamp < new_node->timestamp)
         {
             current = current->next;
         }
@@ -258,16 +255,27 @@ void sendCommand( void * ptr )
 {
 	int n;
 
+	Command * head = (Command*) ptr;
+
 	while( 1 )
 	{
 	
-		char * inBuffer[MAX_MSG];
-		puts( "Input your message: " );
-		scanf( "%s", inBuffer );
+		char inBuffer[MAX_MSG];
+		puts( "\nInput your message: " );
+		//getline( inBuffer );
+		//scanf( "%s", inBuffer );
+		fgets( inBuffer, MAX_MSG-1, stdin );
+		//printf( "Sending %s", inBuffer );
+	    
+		if( !strcmp( inBuffer, "VIEW\n" ) )
+		{
+			printList( head );
+		}
+		else
+		{
+    			n = sendto( sock, inBuffer, sizeof(buffer), 0, (struct sockaddr *) &anybody, fromlen );
+		}
     
-    n = sendto( sock, buffer, sizeof(buffer), 0, (struct sockaddr *) &anybody, fromlen );
-    
-
 	}	
 
 	return;
@@ -282,9 +290,9 @@ void printList( Command * head )
 	}
 	
 	printList( head->next );
-	usleep( 50000 );
+	//usleep( 50000 );
 	
-	puts( head->desc );
+	printf( "\n> %4s %13s %17.6lf %.6lf", head->desc, head->ip, head->timestamp, head->voltage );
 }
 
 void freeList( Command * head )
@@ -296,7 +304,7 @@ void freeList( Command * head )
         }
 
         freeList( head->next );
-        usleep( 50000 );
+        //usleep( 50000 );
 
 	printf( "\nFreeing: %s", head->desc );
 	free( head );
@@ -306,7 +314,7 @@ void freeList( Command * head )
 void writeList( int records, Command * head )
 {
 
-	puts( "Writing list back to file" );
+	//puts( "Writing list back to file" );
                                          
   FILE * fp;
   if( access( "events.txt", F_OK ) != -1 ) 
