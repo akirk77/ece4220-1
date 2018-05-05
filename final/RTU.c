@@ -36,6 +36,13 @@ uint16_t get_ADC(int channel);
 #define LED3 7
 #define SWITCH1 26
 #define SWITCH2 23
+#define ENABLE 29
+#define NC 3
+#define DP 4
+#define SEGA 5
+#define SEGB 6
+#define SEGC 25
+#define SEGD 2
 
 void* button1(void* ptr);
 void* button2(void* ptr);
@@ -67,6 +74,8 @@ int main(int argc, char* argv[]){
 	   return 3;
 	}
 	port = atoi(argv[1]);
+
+
 
 	
 	//start getting ip address
@@ -134,6 +143,13 @@ int main(int argc, char* argv[]){
 	pinMode(LED3, OUTPUT);
 	pinMode(SWITCH1, INPUT);
 	pinMode(SWITCH2, INPUT);
+	pinMode(ENABLE, OUTPUT);
+	pinMode(NC, OUTPUT);
+	pinMode(DP, OUTPUT);
+	pinMode(SEGA, OUTPUT);
+	pinMode(SEGB, OUTPUT);
+	pinMode(SEGC, OUTPUT);
+	pinMode(SEGD, OUTPUT);
 	
 	pullUpDnControl(BUTTON1, PUD_DOWN);
 	pullUpDnControl(BUTTON2, PUD_DOWN);
@@ -141,6 +157,14 @@ int main(int argc, char* argv[]){
 	digitalWrite(LED2, LOW);
 	digitalWrite(LED3, LOW);
 	
+	digitalWrite(ENABLE, HIGH);
+	//digitalWrite(NC, HIGH);
+	//digitalWrite(DP, HIGH);
+	digitalWrite(SEGA, LOW);
+	digitalWrite(SEGB, LOW);
+	digitalWrite(SEGC, LOW);
+	digitalWrite(SEGD, LOW);
+
 	//get_min_time(IP);			//function used to find minimum time between events
 
 	
@@ -233,6 +257,11 @@ void* button1(void* Darth_Vader){		//thread that checks button 1
 			//send to socket
 			send_to_socket(IP, event_type, timestamp, ADC);
 			
+			digitalWrite(SEGA, HIGH);
+			digitalWrite(SEGB, LOW);
+			digitalWrite(SEGC, LOW);
+			digitalWrite(SEGD, LOW);
+
 			thing1 = 0;						//resets the dummy variable
 		}
 	}
@@ -264,6 +293,11 @@ void* button2(void* Yoda){
 			ADC = get_adc_value();
 
 			send_to_socket(IP, event_type, timestamp, ADC);
+
+			digitalWrite(SEGA, LOW);
+			digitalWrite(SEGB, HIGH);
+			digitalWrite(SEGC, LOW);
+			digitalWrite(SEGD, LOW);
 
 
 			thing2 = 0;
@@ -299,6 +333,11 @@ void* switch1(void* Darth_Tyrannus){
 			//send information through socket
 			send_to_socket(IP, event_type, timestamp, ADC);
 
+			digitalWrite(SEGA, HIGH);
+			digitalWrite(SEGB, HIGH);
+			digitalWrite(SEGC, LOW);
+			digitalWrite(SEGD, LOW);
+
 		}
 		initial = digitalRead(SWITCH1);			//gets new initial value for comparison
 		final = initial;
@@ -328,6 +367,11 @@ void* switch2(void* Darth_Maul){
 
 			send_to_socket(IP, event_type, timestamp, ADC);
 
+			digitalWrite(SEGA, LOW);
+			digitalWrite(SEGB, LOW);
+			digitalWrite(SEGC, HIGH);
+			digitalWrite(SEGD, LOW);
+
 		}
 		initial = digitalRead(SWITCH2);
 		final = initial;
@@ -346,6 +390,9 @@ void* check_adc(void* Darth_Sidious){
 	char event_type2[5] = "HI_V";
 	double timestamp = 0;
 	double adc_to_send = 0;
+	double value3[100];
+	int y = 0;
+	int z = 0;
 
 	while(1){					//constantly get three values of adc
 		for(x=0;x<3;x++){
@@ -364,6 +411,11 @@ void* check_adc(void* Darth_Sidious){
 
 			send_to_socket(IP, event_type1, timestamp, adc_to_send);
 
+			digitalWrite(SEGA, LOW);
+			digitalWrite(SEGB, LOW);
+			digitalWrite(SEGC, LOW);
+			digitalWrite(SEGD, HIGH);
+
 			while(no_power != 1){				//waits for power to be turned back on
 				value2 = get_adc_value();
 				if(value2 != value[x]){
@@ -375,19 +427,31 @@ void* check_adc(void* Darth_Sidious){
 		no_power = 0;
 
 		//if power is too high (value > 2volts)
-		if(value[x] > 2 && value[x-1] > 2 && value[x-2] > 2){
-			//printf("power is too high\n");
-
-			//event
-			while(high_power != 1){
-				value2 = get_adc_value();
-				if(value2 < 2){
-					//printf("power is back in range\n");
-					high_power = 1;
+		if(value[x] > 2){
+			for(y=0;y<100;y++){
+				value3[y] = get_adc_value();
+				if(value3[y] > 2){				//if the adc is > 2
+					high_power++;				//bump a counter
+					z = y;						//save the value
 				}
 			}
+
+			//event
+			if(high_power >= 5){				//if five values are out of range
+
+				gettimeofday(&tv, NULL);		//record the event
+				timestamp = (double)(tv.tv_sec + 0.000001 * tv.tv_usec);
+
+				send_to_socket(IP, event_type2, timestamp, value3[z]);
+
+				digitalWrite(SEGA, HIGH);
+				digitalWrite(SEGB, LOW);
+				digitalWrite(SEGC, LOW);
+				digitalWrite(SEGD, HIGH);
+
+			}
 		}
-		high_power = 0;
+		high_power = 0;				//reset the counter
 
 	}
 }
@@ -506,6 +570,11 @@ void* wait_for_message(void* tattooine){
 					}
 					if(flag == 1){									//if event was recorded
 						send_to_socket(IP, event_type, timestamp, ADC);	//send event through socket
+
+						digitalWrite(SEGA, HIGH);
+						digitalWrite(SEGB, LOW);
+						digitalWrite(SEGC, HIGH);
+						digitalWrite(SEGD, LOW);
 					}
 				}
 				if(message[8] == '2'){
@@ -538,6 +607,11 @@ void* wait_for_message(void* tattooine){
 					}
 					if(flag == 1){
 						send_to_socket(IP, event_type, timestamp, ADC);
+
+						digitalWrite(SEGA, LOW);
+						digitalWrite(SEGB, HIGH);
+						digitalWrite(SEGC, HIGH);
+						digitalWrite(SEGD, LOW);
 					}
 				}
 				if(message[8] == '3'){
@@ -570,6 +644,11 @@ void* wait_for_message(void* tattooine){
 					}
 					if(flag == 1){
 						send_to_socket(IP, event_type, timestamp, ADC);
+
+						digitalWrite(SEGA, HIGH);
+						digitalWrite(SEGB, HIGH);
+						digitalWrite(SEGC, HIGH);
+						digitalWrite(SEGD, LOW);
 					}
 				}
 			}
